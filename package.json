@@ -1,0 +1,27 @@
+{
+  "name": "expression-namer",
+  "version": "1.0.0",
+  "description": "Get a sensible name for English JavaScript variable names.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive test"
+  },
+  "keywords": [
+    "expression",
+    "extract",
+    "name",
+    "variable"
+  ],
+  "files": [
+    "index.js",
+    "lib/speech.js"
+  ],
+  "author": "Brian Donovan",
+  "license": "MIT",
+  "devDependencies": {
+    "ast-types": "^0.6.6",
+    "esprima": "^1.2.2",
+    "generator-utils": "^1.0.0",
+    "mocha": "^2.0.1"
+  }
+}
