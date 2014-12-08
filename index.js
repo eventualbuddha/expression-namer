@@ -1,6 +1,8 @@
 const extractSubject = require('./lib/speech').extractSubject;
 const g = require('generator-utils');
 
+const IDENTIFIER_PATTERN = /^[$_a-zA-Z][$_a-zA-Z0-9]*$/;
+
 /**
  * Gets a generator yielding possible names for the given expression.
  *
@@ -8,7 +10,10 @@ const g = require('generator-utils');
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
 function namesForExpression(expression) {
-  return new ExpressionNamer().namesForExpression(expression);
+  return g.filter(
+    new ExpressionNamer().namesForExpression(expression),
+    function(name) { return IDENTIFIER_PATTERN.test(name); }
+  );
 }
 exports.namesForExpression = namesForExpression;
 
@@ -32,32 +37,39 @@ function ExpressionNamer() {}
 
 /**
  * @param {Expression} expression
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForExpression = function(expression) {
-  return this['namesFor' + expression.type](expression);
+ExpressionNamer.prototype.namesForExpression = function(expression, parent) {
+  return this['namesFor' + expression.type](expression, parent);
 };
 
 /**
  * @param {Identifier} identifier
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForIdentifier = function(identifier) {
+ExpressionNamer.prototype.namesForIdentifier = function(identifier, parent) {
   return g.fromArray([identifier.name]);
 };
 
 /**
  * @param {Literal} literal
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForLiteral = function(literal) {
+ExpressionNamer.prototype.namesForLiteral = function(literal, parent) {
   switch (typeof literal.value) {
     case 'number':
-      return g.fromArray(['' + literal.value, '_' + literal.value]);
+      if (parent) {
+        return g.fromArray(['' + literal.value]);
+      } else {
+        return g.fromArray(['number']);
+      }
 
     case 'string':
       const words = literal.value.replace(/[^\sa-z]/gi, '').split(/\s+/);
-      return g.fromArray([joinNames(words)]);
+      return g.fromArray([joinNames(words), 'string']);
 
     case 'object':
       if (literal.value === null) {
@@ -73,18 +85,19 @@ ExpressionNamer.prototype.namesForLiteral = function(literal) {
 
 /**
  * @param {MemberExpression} memberExpression
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForMemberExpression = function(memberExpression) {
+ExpressionNamer.prototype.namesForMemberExpression = function(memberExpression, parent) {
   return g.concat([
     // First just names based on the property.
-    this.namesForExpression(memberExpression.property),
+    this.namesForExpression(memberExpression.property, memberExpression),
 
     // Then permute the object and property names together.
     g.map(
       g.combine([
-        this.namesForExpression(memberExpression.object),
-        this.namesForExpression(memberExpression.property)
+        this.namesForExpression(memberExpression.object, memberExpression),
+        this.namesForExpression(memberExpression.property, memberExpression)
       ]),
       joinNames
     )
@@ -93,25 +106,28 @@ ExpressionNamer.prototype.namesForMemberExpression = function(memberExpression) 
 
 /**
  * @param {FunctionExpression} fn
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForFunctionExpression = function(fn) {
-  return this.namesForFunction(fn);
+ExpressionNamer.prototype.namesForFunctionExpression = function(fn, parent) {
+  return this.namesForFunction(fn, parent);
 };
 
 /**
  * @param {FunctionDeclaration} fn
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForFunctionDeclaration = function(fn) {
-  return this.namesForFunction(fn);
+ExpressionNamer.prototype.namesForFunctionDeclaration = function(fn, parent) {
+  return this.namesForFunction(fn, parent);
 };
 
 /**
  * @param {FunctionExpression|FunctionDeclaration} fn
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForFunction = function(fn) {
+ExpressionNamer.prototype.namesForFunction = function(fn, parent) {
   const candidates = ['fn', 'func'];
 
   if (fn.id) {
@@ -123,9 +139,10 @@ ExpressionNamer.prototype.namesForFunction = function(fn) {
 
 /**
  * @param {CallExpression} call
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForCallExpression = function(call) {
+ExpressionNamer.prototype.namesForCallExpression = function(call, parent) {
   return g.concat([
     // First, get any subjects from callee names, e.g. "index" from "indexOf".
     g.filterMap(
@@ -153,34 +170,39 @@ ExpressionNamer.prototype.namesForCallExpression = function(call) {
 };
 
 /**
+ * @param {ThisExpression} expression
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForThisExpression = function() {
+ExpressionNamer.prototype.namesForThisExpression = function(expression, parent) {
   return g.fromArray(['this', 'self', 'that', 'me']);
 };
 
 /**
  * @param {ObjectExpression} objectExpression
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForObjectExpression = function(objectExpression) {
+ExpressionNamer.prototype.namesForObjectExpression = function(objectExpression, parent) {
   return g.fromArray(['object', 'obj']);
 };
 
 /**
  * @param {ArrayExpression} arrayExpression
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForArrayExpression = function(arrayExpression) {
+ExpressionNamer.prototype.namesForArrayExpression = function(arrayExpression, parent) {
   return g.fromArray(['list', 'array', 'arr']);
 };
 
 /**
  * @param {UnaryExpression} unaryExpression
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForUnaryExpression = function(unaryExpression) {
-  const expressionNames = this.namesForExpression(unaryExpression.argument);
+ExpressionNamer.prototype.namesForUnaryExpression = function(unaryExpression, parent) {
+  const expressionNames = this.namesForExpression(unaryExpression.argument, unaryExpression);
   var prefix;
   var removablePrefix;
 
@@ -221,11 +243,12 @@ ExpressionNamer.prototype.namesForUnaryExpression = function(unaryExpression) {
 
 /**
  * @param {BinaryExpression} binaryExpression
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForBinaryExpression = function(binaryExpression) {
-  const leftNames = this.namesForExpression(binaryExpression.left);
-  const rightNames = this.namesForExpression(binaryExpression.right);
+ExpressionNamer.prototype.namesForBinaryExpression = function(binaryExpression, parent) {
+  const leftNames = this.namesForExpression(binaryExpression.left, binaryExpression);
+  const rightNames = this.namesForExpression(binaryExpression.right, binaryExpression);
   var middle;
 
   switch (binaryExpression.operator) {
@@ -258,20 +281,22 @@ ExpressionNamer.prototype.namesForBinaryExpression = function(binaryExpression) 
 
 /**
  * @param {AssignmentExpression} assignment
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForAssignmentExpression = function(assignment) {
+ExpressionNamer.prototype.namesForAssignmentExpression = function(assignment, parent) {
   return g.concat([
-    this.namesForExpression(assignment.right),
-    this.namesForExpression(assignment.left)
+    this.namesForExpression(assignment.right, assignment),
+    this.namesForExpression(assignment.left, assignment)
   ]);
 };
 
 /**
  * @param {UpdateExpression} update
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForUpdateExpression = function(update) {
+ExpressionNamer.prototype.namesForUpdateExpression = function(update, parent) {
   var rules;
 
   if (!update.prefix) {
@@ -291,7 +316,7 @@ ExpressionNamer.prototype.namesForUpdateExpression = function(update) {
   return g.map(
     g.combine([
       g.fromArray(rules),
-      this.namesForExpression(update.argument)
+      this.namesForExpression(update.argument, update)
     ]),
     function(pair) {
       var left = pair[0];
@@ -312,9 +337,10 @@ ExpressionNamer.prototype.namesForUpdateExpression = function(update) {
 
 /**
  * @param {LogicalExpression} logical
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForLogicalExpression = function(logical) {
+ExpressionNamer.prototype.namesForLogicalExpression = function(logical, parent) {
   var middle;
 
   switch (logical.operator) {
@@ -333,8 +359,8 @@ ExpressionNamer.prototype.namesForLogicalExpression = function(logical) {
 
   return g.map(
     g.combine([
-      this.namesForExpression(logical.left),
-      this.namesForExpression(logical.right)
+      this.namesForExpression(logical.left, logical),
+      this.namesForExpression(logical.right, logical)
     ]),
     namePairJoinerWithMiddle(middle)
   );
@@ -342,14 +368,15 @@ ExpressionNamer.prototype.namesForLogicalExpression = function(logical) {
 
 /**
  * @param {ConditionalExpression} conditional
+ * @param {?Node=} parent
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForConditionalExpression = function(conditional) {
+ExpressionNamer.prototype.namesForConditionalExpression = function(conditional, parent) {
   return g.concat([
     g.map(
       g.combine([
-        this.namesForExpression(conditional.consequent),
-        this.namesForExpression(conditional.alternate)
+        this.namesForExpression(conditional.consequent, conditional),
+        this.namesForExpression(conditional.alternate, conditional)
       ]),
       namePairJoinerWithMiddle('or')
     ),
@@ -361,17 +388,17 @@ ExpressionNamer.prototype.namesForConditionalExpression = function(conditional) 
  * @param {NewExpression} newExpression
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-ExpressionNamer.prototype.namesForNewExpression = function(newExpression) {
+ExpressionNamer.prototype.namesForNewExpression = function(newExpression, parent) {
   return g.concat([
     g.map(
-      this.namesForExpression(newExpression.callee),
+      this.namesForExpression(newExpression.callee, newExpression),
       function(name) {
         return name[0].toLowerCase() + name.slice(1);
       }
     ),
 
     g.map(
-      this.namesForExpression(newExpression.callee),
+      this.namesForExpression(newExpression.callee, newExpression),
       function(name) {
         return joinNames(['new', name]);
       }

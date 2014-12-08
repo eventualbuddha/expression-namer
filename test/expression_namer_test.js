@@ -37,29 +37,36 @@ describe('ExpressionNamer', function() {
   });
 
   describe('#namesForLiteral', function() {
-    context('when the literal is a number', function() {
-      it('uses the number followed by an underscored version', function() {
-        assert.deepEqual(
-          getNames('1'),
-          ['1', '_1']
-        );
+    context('when the literal has no parent', function() {
+      it('uses "number" for numbers', function() {
+        assert.deepEqual(getNames('1'), ['number']);
+      });
+
+      it('uses "string" and an identifier based on the string for strings', function() {
+        assert.deepEqual(getNames('"hey there!"'), ['heyThere', 'string']);
+      });
+
+      it('uses regex-type words for regexes', function() {
+        assert.deepEqual(getNames('/a/'), ['regex', 'pattern']);
       });
     });
 
-    context('when the literal is a string', function() {
-      it('converts it into an identifier', function() {
+    context('when the literal has a parent', function() {
+      it('uses the number itself', function() {
+        assert.deepEqual(getNames('list[0]'), ['list0']);
+      });
+
+      it('uses "string" and an identifier based on the string for strings', function() {
         assert.deepEqual(
-          getNames('"hey there!"'),
-          ['heyThere']
+          getNames('dict["hey there!"]'),
+          ['heyThere', 'string', 'dictHeyThere', 'dictString']
         );
       });
-    });
 
-    context('when the literal is a regex', function() {
-      it('uses common names for regexes', function() {
+      it('uses regex-type words for regexes', function() {
         assert.deepEqual(
-          getNames('/hey/'),
-          ['regex', 'pattern']
+          getNames('s[/a/]'),
+          ['regex', 'pattern', 'sRegex', 'sPattern']
         );
       });
     });
