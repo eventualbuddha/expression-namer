@@ -22,7 +22,8 @@
     "ast-types": "^0.6.6",
     "esprima": "^1.2.2",
     "generator-utils": "^1.0.0",
-    "mocha": "^2.0.1"
+    "mocha": "^2.0.1",
+    "reify": "^0.3.6"
   },
   "dependencies": {
     "generator-utils": "^1.0.1"
