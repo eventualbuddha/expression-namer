@@ -1,10 +1,14 @@
 {
   "name": "expression-namer",
   "description": "Get a sensible name for English JavaScript variable names.",
-  "main": "index.js",
+  "main": "dist/expression-namer.js",
+  "jsnext:main": "dist/expression-namer.mjs",
   "scripts": {
+    "build": "rollup -c",
+    "pretest": "npm run build",
     "test": "mocha",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "expression",
@@ -13,8 +17,7 @@
     "variable"
   ],
   "files": [
-    "index.js",
-    "lib/speech.js"
+    "dist"
   ],
   "author": "Brian Donovan",
   "license": "MIT",
@@ -24,6 +27,7 @@
     "generator-utils": "^1.0.0",
     "mocha": "^2.0.1",
     "reify": "^0.3.6",
+    "rollup": "^0.34.1",
     "semantic-release": "^4.3.5"
   },
   "dependencies": {

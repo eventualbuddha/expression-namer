@@ -1,5 +1,5 @@
-const extractSubject = require('./lib/speech').extractSubject;
-const g = require('generator-utils');
+import { extractSubject } from './speech.js';
+import * as g from 'generator-utils';
 
 const IDENTIFIER_PATTERN = /^[$_a-zA-Z][$_a-zA-Z0-9]*$/;
 
@@ -9,13 +9,12 @@ const IDENTIFIER_PATTERN = /^[$_a-zA-Z][$_a-zA-Z0-9]*$/;
  * @param {Expression} expression
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
-function namesForExpression(expression) {
+export function namesForExpression(expression) {
   return g.filter(
     new ExpressionNamer().namesForExpression(expression),
     function(name) { return IDENTIFIER_PATTERN.test(name); }
   );
 }
-exports.namesForExpression = namesForExpression;
 
 /**
  * Gets all the possible names for the given expression.
@@ -23,17 +22,16 @@ exports.namesForExpression = namesForExpression;
  * @param {Expression} expression
  * @returns {string[]}
  */
-function allNamesForExpression(expression) {
+export function allNamesForExpression(expression) {
   return g.toArray(namesForExpression(expression));
 }
-exports.allNamesForExpression = allNamesForExpression;
 
 /**
  * Provides plausible names for various types of expressions.
  *
  * @constructor
  */
-function ExpressionNamer() {}
+export function ExpressionNamer() {}
 
 /**
  * @param {Expression} expression
@@ -451,5 +449,3 @@ function hasCamelCasePrefix(prefix, identifier) {
 
   return true;
 }
-
-exports.ExpressionNamer = ExpressionNamer;

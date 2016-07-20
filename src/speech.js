@@ -5,7 +5,7 @@ const PREPOSITION = /(?:^|[a-z])(About|Above|Across|After|Against|Along|Among|Ar
  * @param {string} name
  * @returns {string}
  */
-exports.extractSubject = function extractSubject(name) {
+export function extractSubject(name) {
   var subject = name;
 
   const verbMatch = subject.match(LEADING_VERB);
@@ -21,4 +21,4 @@ exports.extractSubject = function extractSubject(name) {
   }
 
   return subject;
-};
+}
