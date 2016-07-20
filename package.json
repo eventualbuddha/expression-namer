@@ -4,7 +4,7 @@
   "description": "Get a sensible name for English JavaScript variable names.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive test"
+    "test": "mocha"
   },
   "keywords": [
     "expression",
