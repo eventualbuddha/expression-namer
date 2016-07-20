@@ -1,8 +1,10 @@
+import nodeResolve from 'rollup-plugin-node-resolve';
+
 var pkg = require('./package.json');
 
 export default {
   entry: 'src/index.js',
-  external: Object.keys(pkg['dependencies']),
+  plugins: [nodeResolve({ jsnext: true })],
   targets: [
     {
       format: 'es',
