@@ -157,6 +157,13 @@ describe('ExpressionNamer', function() {
         ['this', 'self', 'that', 'me']
       );
     });
+
+    it('uses different names when used in a member expression', function() {
+      deepEqual(
+        getNames('this.name'),
+        ['name', 'thisName', 'myName']
+      );
+    });
   });
 
   describe('#namesForObjectExpression', function() {

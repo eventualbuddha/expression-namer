@@ -173,7 +173,11 @@ ExpressionNamer.prototype.namesForCallExpression = function(call, parent) {
  * @returns {{next: (function(): {value: ?string, done: boolean})}}
  */
 ExpressionNamer.prototype.namesForThisExpression = function(expression, parent) {
-  return g.fromArray(['this', 'self', 'that', 'me']);
+  if (parent && parent.type === 'MemberExpression') {
+    return g.fromArray(['this', 'my']);
+  } else {
+    return g.fromArray(['this', 'self', 'that', 'me']);
+  }
 };
 
 /**
