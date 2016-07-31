@@ -28,7 +28,7 @@
     "mocha": "^2.5.3",
     "reify": "^0.3.6",
     "rollup": "^0.34.1",
-    "rollup-plugin-node-resolve": "^1.7.1",
+    "rollup-plugin-node-resolve": "^2.0.0",
     "semantic-release": "^4.3.5"
   },
   "repository": {
