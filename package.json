@@ -25,7 +25,7 @@
     "ast-types": "^0.8.18",
     "esprima": "^2.7.2",
     "generator-utils": "^1.1.2",
-    "mocha": "^2.5.3",
+    "mocha": "^3.0.0",
     "reify": "^0.3.6",
     "rollup": "^0.34.1",
     "rollup-plugin-node-resolve": "^2.0.0",
