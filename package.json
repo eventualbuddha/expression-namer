@@ -23,7 +23,7 @@
   "license": "MIT",
   "devDependencies": {
     "ast-types": "^0.9.0",
-    "esprima": "^2.7.2",
+    "esprima": "^3.0.0",
     "generator-utils": "^1.1.2",
     "mocha": "^3.0.0",
     "reify": "^0.3.6",
