@@ -26,7 +26,7 @@
     "esprima": "^3.0.0",
     "generator-utils": "^1.1.2",
     "mocha": "^3.0.0",
-    "reify": "^0.3.6",
+    "reify": "^0.4.1",
     "rollup": "^0.36.1",
     "rollup-plugin-node-resolve": "^2.0.0",
     "semantic-release": "^4.3.5"
