@@ -27,7 +27,7 @@
     "generator-utils": "^1.1.2",
     "mocha": "^3.0.0",
     "reify": "^0.4.1",
-    "rollup": "^0.37.0",
+    "rollup": "^0.38.0",
     "rollup-plugin-node-resolve": "^2.0.0",
     "semantic-release": "^6.3.2"
   },
