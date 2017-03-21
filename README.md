@@ -1,5 +1,7 @@
 # Expression Namer
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/eventualbuddha/expression-namer.svg)](https://greenkeeper.io/)
+
 This library provides plausible names for JavaScript expressions. For example,
 given the expression `view.width` good names might be "width" and "viewWidth".
 This could potentially be used in part to build an IDE's "extract variable"
