@@ -24,7 +24,7 @@
   "devDependencies": {
     "ast-types": "^0.10.1",
     "esprima": "^4.0.0",
-    "generator-utils": "^1.1.2",
+    "generator-utils": "^2.0.1",
     "mocha": "^4.0.1",
     "reify": "^0.13.0",
     "rollup": "^0.52.0",
